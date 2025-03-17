@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { display: flex; justify-content: space-between; }
+        .box { width: 48%; padding: 10px; border: 1px solid black; }
+        input, button { display: block; width: 100%; margin-top: 5px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Messenger</h1>
+    <div class="container">
+        <div class="box">
+            <h3>Send Message</h3>
+            <input type="text" id="targetUser" placeholder="Target user">
+            <input type="text" id="message" placeholder="Message">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        <div class="box">
+            <h3>Register User</h3>
+            <input type="text" id="regUser" placeholder="Username">
+            <input type="password" id="regPass" placeholder="Password">
+            <button onclick="registerUser()">Register</button>
+        </div>
+    </div>
+    <div class="box" style="margin-top: 20px;">
+        <h3>Inbox</h3>
+        <input type="text" id="inboxUser" placeholder="Username">
+        <input type="password" id="inboxPass" placeholder="Password">
+        <button onclick="checkInbox()">Check Inbox</button>
+        <ul id="messages"></ul>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const username = document.getElementById("targetUser").value;
+            const message = document.getElementById("message").value;
+            fetch("/message", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `username=${encodeURIComponent(username)}&message=${encodeURIComponent(message)}`
+            }).then(response => {
+                if (response.status === 200) {
+                    alert("Message sent successfully");
+                    document.getElementById("message").value = "";
+                } else {
+                    alert("Failed to send message");
+                }
+            });
+        }
+
+        function registerUser() {
+            const username = document.getElementById("regUser").value;
+            const password = document.getElementById("regPass").value;
+            fetch("/user", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+            }).then(response => {
+                if (response.status === 200) {
+                    alert("Registered successfully");
+                    document.getElementById("regUser").value = "";
+                    document.getElementById("regPass").value = "";
+                } else {
+                    alert("Registration failed");
+                }
+            });
+        }
+
+        function checkInbox() {
+            const username = document.getElementById("inboxUser").value;
+            const password = document.getElementById("inboxPass").value;
+            fetch(`/message?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`)
+            .then(response => response.json())
+            .then(messages => {
+                const list = document.getElementById("messages");
+                list.innerHTML = "";
+                messages.forEach(msg => {
+                    const li = document.createElement("li");
+                    li.textContent = msg;
+                    list.appendChild(li);
+                });
+            }).catch(() => alert("Failed to load messages"));
+        }
+    </script>
+</body>
+</html>
